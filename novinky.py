@@ -7,8 +7,12 @@ import httpx
 from core import norm, implied_spot, czk_fmt
 
 LIST_URL = "https://stonexbullion.com/en/{path}/?page={page}"
-PATHS = {"gold": "gold", "silver": "silver", "platinum": "platinum-palladium"}
+PATHS = {"gold": "gold", "silver": "silver",
+         "platinum": "platinum-palladium", "palladium": "platinum-palladium"}
+import os
 HDRS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) cenotvorba-mz/1.0"}
+if os.environ.get("STONEX_COOKIE"):        # session z prohlížeče (klientské ceny)
+    HDRS["Cookie"] = os.environ["STONEX_COOKIE"]
 
 def _get(url):
     r = httpx.get(url, timeout=40, follow_redirects=True, headers=HDRS)
@@ -51,8 +55,12 @@ SPEC = {
  "soldout":        r"Currently\s+out\s+of\s+stock|SOLD\s*OUT",
  "image":          r"(https://cdn\.stonexbullion\.com/cache/img/[^\s\"')]+)",
  "premium":        r"1\+\s*(?:</[^>]+>\s*<[^>]+>)?\s*€\s*([\d.,]+)",
- "spot_oz":        r"Gold[^€]*€\s*([\d.,]+)",
+ "metal":          r">Metal<\s*/[^>]+>\s*<[^>]+>\s*(Gold|Silver|Platinum|Palladium)",
+ "metal_txt":      r"Metal\s*\|\s*(Gold|Silver|Platinum|Palladium)",
 }
+def spot_from_page(h, metal_word):
+    m=re.search(metal_word+r"[^€\d]{0,40}€\s*([\d.,]+)", h)
+    return _f(m.group(1))/31.1035 if m else None   # €/oz -> €/g
 
 def parse_detail(h):
     d = {}
@@ -63,6 +71,8 @@ def parse_detail(h):
     d["mint"] = html.unescape(m.group(1)).strip() if m else None
     d["soldout"] = bool(re.search(SPEC["soldout"], h, re.I))
     d["dispatch"] = bool(re.search(SPEC["dispatch"], h, re.I))
+    m = re.search(SPEC["metal"], h, re.I|re.S) or re.search(SPEC["metal_txt"], h, re.I)
+    d["metal"] = m.group(1).capitalize() if m else None
     return d
 
 def _f(s):  # "7,775875" / "1,112.36" -> float (autodetekce formátu)
@@ -84,13 +94,18 @@ def collect_new(mapping, metal, spot_g, fx, margin_pct, rounding=1,
     if limit: news = news[:limit]
     for name, url in news:
         try:
-            d = parse_detail(_get(url))
+            h = _get(url)
+            d = parse_detail(h)
             if d["soldout"]:
                 continue
             if not (d["product_number"] and d["weight"] and d["premium"]):
                 errs.append((name, url, "neúplný detail")); continue
             wg = _f(d["weight"]); prem = _f(d["premium"])
-            cost = (spot_g * wg + prem) * fx
+            sg = spot_from_page(h, d["metal"] or metal.capitalize()) or \
+                 (spot_g if metal == "gold" else None)
+            if sg is None:
+                errs.append((name, url, "spot kovu nenalezen na stránce")); continue
+            cost = (sg * wg + prem) * fx
             price = round(cost * (1 + margin_pct / 100) / rounding) * rounding
             avail = (f"U dodavatele: {d['avail_num']} ks" if d["avail_num"] else "Na dotaz") \
                     + (" · delší expedice" if d["dispatch"] else "")

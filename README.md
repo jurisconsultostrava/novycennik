@@ -61,3 +61,12 @@ CSV nových produktů: `code`(=Product number), `name`, `price`/`purchasePrice`
 vynechává; sloupec Category se nechává prázdný k redakčnímu doplnění. Parser detailu je
 zkalibrován proti reálné stránce (ověřeno vč. cenové rovnice na cent); scraping je
 šetrný (pauzy mezi požadavky), pro první test použijte Limit=5.
+
+## Přihlášení k dodavateli (volitelné, klientské ceny)
+Veřejný katalog funguje bez přihlášení. Pokud klientský účet zobrazuje individuální
+prémie, nastavte na Railway proměnnou `STONEX_COOKIE`: přihlaste se v prohlížeči,
+v DevTools → Network zkopírujte hodnotu hlavičky `Cookie` z libovolného požadavku
+na stonexbullion.com a vložte ji jako hodnotu proměnné. Přihlašovací údaje nikdy
+nepatří do kódu ani do repa; po expiraci session cookie obnovte. Ceny novinek se
+počítají z metal-specifického spotu čteného přímo z detailu produktu (Gold/Silver/
+Platinum/Palladium), nikoli ze zlatého PDF.
