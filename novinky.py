@@ -45,17 +45,17 @@ def list_products(metal="gold", max_pages=15, sleep=0.4):
     return out
 
 SPEC = {
- "product_number": r"Product\s+number\s*(?:</[^>]+>\s*<[^>]+>|\|?\s*)\s*(\d{3,9})",
- "mint":           r">Mint<\s*/[^>]+>\s*<[^>]+>\s*([^<]{2,60})<",
- "mint_txt":       r"Mint\s*\|\s*([^|<\n]{2,60})",
- "weight":         r"Weight1?\s*(?:</[^>]+>\s*<[^>]+>|\|?\s*)\s*([\d.,]+)\s*g",
- "avail_num":      r"Availability:\s*([\d,\.]+)",
- "dispatch":       r"est\.\s*dispatch\s*in\s*[^d]*days",
+ "product_number": r"Product\s+number\s*\|?\s*(?:</[^>]+>\s*<[^>]+>)?\s*(\d{3,9})",
+ "mint":           r"(?<!Royal )(?<!Perth )(?<!States )\bMint\s*\|\s*([^|<\n]{2,60})",
+ "mint_txt":       r">Mint<\s*/[^>]+>\s*<[^>]+>\s*([^<]{2,60})<",
+ "weight":         r"Weight1?\s*\|?\s*(?:</[^>]+>\s*<[^>]+>)?\s*([\d.,]+)\s*g",
+ "avail_num":      r"Availability:\s*(\d[\d,\.]*)",
+ "dispatch":       r"(?:est\.\s*dispatch|ships)\s*in[^\n]*?days",
  "soldout":        r"Currently\s+out\s+of\s+stock|SOLD\s*OUT",
  "image":          r"(https://cdn\.stonexbullion\.com/cache/img/[^\s\"')]+)",
- "premium":        r"1\+\s*(?:</[^>]+>\s*<[^>]+>)?\s*€\s*([\d.,]+)",
- "metal":          r">Metal<\s*/[^>]+>\s*<[^>]+>\s*(Gold|Silver|Platinum|Palladium)",
- "metal_txt":      r"Metal\s*\|\s*(Gold|Silver|Platinum|Palladium)",
+ "premium":        r"Premium:\s*€\s*([\d.,]+)",
+ "metal":          r"Metal\s*Type\W{0,4}(Gold|Silver|Platinum|Palladium)",
+ "metal_txt":      r"\bMetal\s*\|\s*(Gold|Silver|Platinum|Palladium)",
 }
 def spot_from_page(h, metal_word):
     m=re.search(metal_word+r"[^€\d]{0,40}€\s*([\d.,]+)", h)

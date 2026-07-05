@@ -100,3 +100,16 @@ aby výpadek zdroje bylo vidět z monitoringu dřív, než se v e-shopu zastaví
 Pokud by challenge nastávala trvale, řešením je proxy s rezidentní IP nebo
 velkoobchodní datový feed/API přímo od StoneX (nejčistší cesta) – obojí je změna
 konfigurace, ne přihlašování.
+## Obohacení nespárovaných produktů (modul obohaceni.py, endpoint /api/obohatit)
+Nahrajte XLSX/CSV se sloupci `code` (StoneX Product number) a `name`. Aplikace projede
+veřejné výpisy kategorií StoneX, sestaví index Product number → URL detailu a ke každému
+kódu doplní: `price`, `purchasePrice` (spot kovu z detailu × váha + prémie × kurz ČNB
+× marže), `manufacturer` (Mint), `availability` (skladem N ks / vyprodáno), `image`
+(CDN cache URL čtená ze stránky, fallback na /product/image/{code}/), `variant:Váha`
+(fine weight v plné přesnosti) a `Category` (z categories.csv dle názvu – přesná shoda
+na gramáž, jinak kategorie kovu). `guid` zůstává prázdný – nový produkt si ho přidělí
+Shoptet. Sloupce `catconf`/`zdroj` v náhledu ukazují spolehlivost zařazení a zdrojovou URL.
+
+DŮLEŽITÉ: parser i cenová rovnice jsou ověřeny proti reálnému HTML detailu na cent
+(1/10 oz American Eagle, Product number 118324 → gross €423,73). Modul běží spolehlivě
+jen z nasazení (Railway); lokální prostředí za Cloudflare vrací na StoneX HTTP 403.

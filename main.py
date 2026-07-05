@@ -8,6 +8,8 @@ from fastapi import FastAPI, UploadFile, File, Form, Header, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 import core
 import novinky as nv
+import obohaceni as ob
+import openpyxl
 
 log = logging.getLogger("cenotvorba")
 app = FastAPI(title="Cenotvorba moje-zlato.cz")
@@ -143,6 +145,47 @@ async def novinky_ep(fmt: str = Form("preview"), metals: str = Form("gold"),
       "novinek":len(rows_all),"chyb":len(errs)},"rows":rows_all,
       "errs":[{"name":a,"url":b,"err":c} for a,b,c in errs]})
 
+
+@app.post("/api/obohatit")
+async def obohatit(soubor: UploadFile = File(...), categories: UploadFile = File(None),
+                   metals: str = Form("gold,silver,platinum"),
+                   margin: str = Form("1.25"), rounding: str = Form("1"),
+                   qty: str = Form("1"), fmt: str = Form("csv"),
+                   x_token: str = Header("")):
+    """Obohatí nahraný XLSX/CSV (code=StoneX Product number + name) o data z webu
+    StoneX: price, purchasePrice, manufacturer, availability, image, variant:Váha
+    a Category (dle nahraného categories.csv, jinak vestavěného). guid zůstává
+    prázdný (přiděluje Shoptet novému produktu)."""
+    auth(x_token)
+    raw=await soubor.read()
+    rows=[]
+    if soubor.filename.lower().endswith((".xlsx",".xlsm")):
+        import io as _io
+        wb=openpyxl.load_workbook(_io.BytesIO(raw), data_only=True)
+        ws=wb.active
+        hdr=[str(c.value).strip() if c.value is not None else "" for c in next(ws.iter_rows(min_row=1,max_row=1))]
+        ci=hdr.index("code") if "code" in hdr else 0
+        ni=hdr.index("name") if "name" in hdr else 1
+        for r in ws.iter_rows(min_row=2, values_only=True):
+            if r[ci] is None: continue
+            rows.append({"code":r[ci],"name":r[ni] if ni<len(r) else ""})
+    else:
+        import csv as _csv, io as _io
+        rd=_csv.DictReader(_io.StringIO(raw.decode("utf-8-sig")))
+        for r in rd: rows.append({"code":r.get("code"),"name":r.get("name","")})
+    ctext = (await categories.read()).decode("utf-8-sig") if categories else \
+            open("categories.csv",encoding="utf-8-sig").read()
+    mets=tuple(m for m in metals.split(",") if m)
+    out,errs = ob.enrich(rows, ctext, metals=mets, margin_pct=float(margin),
+                         rounding=int(rounding), qty=int(qty))
+    if fmt=="csv":
+        stamp=time.strftime("%Y%m%d-%H%M")
+        return Response(ob.export_enriched_csv(out), media_type="text/csv; charset=utf-8",
+          headers={"Content-Disposition": f"attachment; filename=obohaceno-{stamp}.csv"})
+    return JSONResponse({"celkem":len(out),"chyb":len(errs),
+        "rows":[{k:v for k,v in r.items() if not k.startswith("_")} |
+                {"catconf":r.get("_catconf"),"zdroj":r.get("_zdroj")} for r in out]})
+
 @app.get("/api/mapping")
 def mapping_get(x_token: str = Header("")):
     auth(x_token); return get_mapping()
@@ -273,6 +316,15 @@ th{color:#c9a24b}.up{color:#8fd18f}.down{color:#e09090}.warn{color:#e0bd6a}
 (dle mapy párování), s dostupnou prodejní cenou; sold out se vynechává. Přenáší se:
 Product number → code, Mint → výrobce, hmotnost, dostupnost a CDN obrázek.
 Sloupec Category zůstává prázdný k doplnění před importem.</p></fieldset>
+<fieldset><legend>OBOHACENÍ NESPÁROVANÝCH (XLSX/CSV → nové produkty)</legend>
+<label>Soubor (code + name): <input id=obsoubor type=file accept=.xlsx,.csv></label>
+<label>categories.csv (volit., jinak vestavěný): <input id=obcats type=file accept=.csv></label><br>
+<button onclick=obohatit('preview')>Náhled obohacení</button>
+<button onclick=obohatit('csv')>Stáhnout obohacené CSV</button>
+<p style="font-size:12px;color:#a8b3a2;margin:6px 0 0">Doplní price, purchasePrice, manufacturer(Mint),
+availability, image(CDN) a variant:Váha z veřejného webu StoneX (párování přes Product number = code);
+Category se určí z categories.csv dle názvu. guid zůstává prázdný – přidělí Shoptet. Stahování detailů
+trvá; sold out se označí. Běží spolehlivě jen z nasazení (Railway), ne z lokálního prostředí za Cloudflare.</p></fieldset>
 <button onclick=go('preview')>Náhled</button>
 <button onclick=go('csv')>Stáhnout CSV</button>
 <button onclick=go('xml')>Stáhnout XML</button>
@@ -338,6 +390,27 @@ async function novinky(mode){err.textContent='';out.innerHTML='';meta.textConten
   h+='</table>';
   if(d.errs.length){h+='<p class=warn>Chyby:</p>';for(const e of d.errs)h+=`<div class=warn style="font-size:12px">${e.name}: ${e.err}</div>`}
   out.innerHTML=h;
+ }catch(e){err.textContent=e.message;meta.textContent=''}
+}
+
+async function obohatit(mode){err.textContent='';out.innerHTML='';meta.textContent='Stahuji detaily z StoneX, může to trvat minuty…';
+ if(!obsoubor.files[0]){err.textContent='Nahrajte XLSX/CSV se sloupci code a name.';meta.textContent='';return}
+ const f=new FormData();f.append('soubor',obsoubor.files[0]);
+ if(obcats.files[0])f.append('categories',obcats.files[0]);
+ f.append('metals',[...document.querySelectorAll('.met:checked')].map(x=>x.value).join(',')||'gold,silver,platinum');
+ f.append('margin',margin.value);f.append('rounding',document.getElementById('round').value);
+ f.append('qty',qty.value);f.append('fmt',mode=='csv'?'csv':'preview');
+ try{
+  const r=await fetch('/api/obohatit',{method:'POST',body:f,headers:{'X-Token':tok.value}});
+  if(!r.ok)throw new Error(await r.text());
+  if(mode=='csv'){const b=await r.blob();const a=document.createElement('a');
+   a.href=URL.createObjectURL(b);a.download='obohaceno.csv';a.click();meta.textContent='Staženo.';return}
+  const d=await r.json();
+  meta.textContent=`Celkem ${d.celkem} · s chybou ${d.chyb}`;
+  let h='<table><tr><th>code</th><th>název</th><th>výrobce</th><th>váha</th><th>Category</th><th>dostupnost</th><th>nákup</th><th>cena</th><th>obr.</th><th>zdroj/chyba</th></tr>';
+  for(const x of d.rows){const okimg=x.image?'✓':'—';const bad=x.price===''?'warn':'';
+   h+=`<tr class=${bad}><td>${x.code}</td><td>${x.name}</td><td>${x.manufacturer}</td><td>${x['variant:Váha']}</td><td>${x.Category}<br><small>${x.catconf||''}</small></td><td>${x.availability}</td><td>${x.purchasePrice}</td><td><b>${x.price}</b></td><td>${okimg}</td><td><small>${(x.zdroj||'').slice(0,60)}</small></td></tr>`}
+  h+='</table>';out.innerHTML=h;
  }catch(e){err.textContent=e.message;meta.textContent=''}
 }
 </script></main></body></html>"""
