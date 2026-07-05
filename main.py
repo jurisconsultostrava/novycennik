@@ -1,0 +1,212 @@
+# -*- coding: utf-8 -*-
+"""Cenotvorba moje-zlato.cz – webová aplikace (FastAPI).
+Vstup: export ceníku (CSV), volitelně productsComplete XML (kategorie), volitelně ruční PDF.
+Výstup: Shoptet import CSV/XML: code,pairCode,name,guid,price,purchasePrice,Category,variant:Váha
+"""
+import os, io, csv, json, time, logging
+from fastapi import FastAPI, UploadFile, File, Form, Header, HTTPException
+from fastapi.responses import HTMLResponse, JSONResponse, Response
+import core
+
+log = logging.getLogger("cenotvorba")
+app = FastAPI(title="Cenotvorba moje-zlato.cz")
+APP_TOKEN = os.environ.get("APP_TOKEN", "")          # doporučeno nastavit na Railway
+MAPPING_PATH = os.environ.get("MAPPING_PATH", "mapping.json")
+
+_cache = {}   # {metal: (ts, items)}
+TTL = 600
+
+def auth(x_token):
+    if APP_TOKEN and x_token != APP_TOKEN:
+        raise HTTPException(401, "Chybný nebo chybějící token (hlavička X-Token)")
+
+def get_mapping():
+    with open(MAPPING_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+def get_catalog(metals, pdf_uploads):
+    """Katalog položek: z ručně nahraných PDF (přednost), jinak fetch s cache."""
+    items = []
+    if pdf_uploads:
+        for b in pdf_uploads:
+            items += core.parse_catalog(b)
+        return items, "ruční PDF"
+    for m in metals:
+        c = _cache.get(m)
+        if not c or time.time() - c[0] > TTL:
+            _cache[m] = (time.time(), core.parse_catalog(core.fetch_stonex_pdf(m)))
+        items += _cache[m][1]
+    return items, "on-line fetch"
+
+def read_cenik(b: bytes):
+    txt = b.decode("utf-8-sig")
+    return list(csv.DictReader(io.StringIO(txt)))
+
+def params_common(spot_mode, spot_manual, fx_mode, fx_manual, catalog):
+    if spot_mode == "manual":
+        spot, spot_info = float(spot_manual), "ručně"
+    else:
+        spot, n = core.implied_spot(catalog); spot_info = f"implikovaný z PDF (n={n})"
+    if fx_mode == "manual":
+        fx, fx_info = float(fx_manual), "ručně"
+    else:
+        fx, d = core.cnb_eur_czk(); fx_info = f"ČNB {d}"
+    return spot, spot_info, fx, fx_info
+
+async def collect(cenik, xml, pdfs):
+    cen = read_cenik(await cenik.read())
+    cats = core.load_categories_from_xml(await xml.read()) if xml else {}
+    pdf_bytes = [await p.read() for p in (pdfs or []) if p.filename]
+    return cen, cats, pdf_bytes
+
+def run(cen, cats, pdf_bytes, metals, spot_mode, spot_manual, fx_mode, fx_manual,
+        margin, bands_json, rounding, qty):
+    catalog, src = get_catalog([m for m in metals.split(",") if m], pdf_bytes)
+    spot, spot_info, fx, fx_info = params_common(spot_mode, spot_manual, fx_mode, fx_manual, catalog)
+    bands = json.loads(bands_json) if bands_json else None
+    rows, skipped = core.compute_rows(cen, get_mapping(), catalog, spot, fx,
+                                      float(margin), bands, int(rounding), int(qty), cats)
+    meta = dict(katalog=f"{len(catalog)} položek ({src})", spot=f"{spot} €/g ({spot_info})",
+                kurz=f"{fx} CZK/EUR ({fx_info})", oceneno=len(rows), preskoceno=len(skipped))
+    return rows, skipped, meta
+
+@app.post("/api/preview")
+async def preview(cenik: UploadFile = File(...), xml: UploadFile = File(None),
+                  pdfs: list[UploadFile] = File(None),
+                  metals: str = Form("gold"), spot_mode: str = Form("pdf"),
+                  spot_manual: str = Form("0"), fx_mode: str = Form("cnb"),
+                  fx_manual: str = Form("0"), margin: str = Form("1.25"),
+                  bands: str = Form(""), rounding: str = Form("1"),
+                  qty: str = Form("1"), x_token: str = Header("")):
+    auth(x_token)
+    cen, cats, pdf_bytes = await collect(cenik, xml, pdfs)
+    rows, skipped, meta = run(cen, cats, pdf_bytes, metals, spot_mode, spot_manual,
+                              fx_mode, fx_manual, margin, bands, rounding, qty)
+    return JSONResponse({"meta": meta, "rows": rows,
+                         "skipped": [{"code": s.get("code"), "name": s.get("name"),
+                                      "duvod": s.get("_duvod")} for s in skipped]})
+
+@app.post("/api/export")
+async def export(fmt: str = Form("csv"), cenik: UploadFile = File(...),
+                 xml: UploadFile = File(None), pdfs: list[UploadFile] = File(None),
+                 metals: str = Form("gold"), spot_mode: str = Form("pdf"),
+                 spot_manual: str = Form("0"), fx_mode: str = Form("cnb"),
+                 fx_manual: str = Form("0"), margin: str = Form("1.25"),
+                 bands: str = Form(""), rounding: str = Form("1"),
+                 qty: str = Form("1"), x_token: str = Header("")):
+    auth(x_token)
+    cen, cats, pdf_bytes = await collect(cenik, xml, pdfs)
+    rows, _, _ = run(cen, cats, pdf_bytes, metals, spot_mode, spot_manual,
+                     fx_mode, fx_manual, margin, bands, rounding, qty)
+    stamp = time.strftime("%Y%m%d-%H%M")
+    if fmt == "xml":
+        return Response(core.export_xml(rows), media_type="application/xml",
+            headers={"Content-Disposition": f"attachment; filename=ceny-{stamp}.xml"})
+    return Response(core.export_csv(rows), media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f"attachment; filename=ceny-{stamp}.csv"})
+
+@app.get("/api/mapping")
+def mapping_get(x_token: str = Header("")):
+    auth(x_token); return get_mapping()
+
+@app.post("/api/mapping")
+async def mapping_set(body: dict, x_token: str = Header("")):
+    auth(x_token)
+    mp = get_mapping(); mp.update(body)
+    with open(MAPPING_PATH, "w", encoding="utf-8") as f:
+        json.dump(mp, f, ensure_ascii=False, indent=1)
+    return {"ok": True, "polozek": len(mp),
+            "pozn": "Souborový zápis je na Railway efemérní – trvalé změny commitněte do repa."}
+
+@app.get("/", response_class=HTMLResponse)
+def ui():
+    return UI
+
+UI = """<!doctype html><html lang=cs><head><meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1"><title>Cenotvorba moje-zlato.cz</title>
+<style>
+body{font-family:system-ui,Segoe UI,Arial;margin:0;background:#141f17;color:#e7e1cd}
+header{padding:18px 24px;border-bottom:1px solid #c9a24b55}
+h1{font-size:18px;margin:0;letter-spacing:.05em}h1 b{color:#c9a24b}
+main{max-width:1100px;margin:0 auto;padding:20px}
+fieldset{border:1px solid #c9a24b44;border-radius:10px;margin:0 0 16px;padding:14px 16px}
+legend{color:#c9a24b;font-weight:700;font-size:13px;letter-spacing:.08em}
+label{display:inline-block;margin:4px 14px 4px 0;font-size:13px}
+input,select{background:#1c2a1f;color:#e7e1cd;border:1px solid #c9a24b55;border-radius:6px;padding:6px 8px}
+input[type=file]{border:0;padding:2px}
+button{background:linear-gradient(180deg,#e0bd6a,#c9a24b 55%,#a8842f);color:#231a06;border:0;
+ border-radius:8px;padding:10px 18px;font-weight:800;cursor:pointer;margin-right:10px}
+#meta{font-size:13px;color:#a8b3a2;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:12px;margin-top:10px}
+th,td{border-bottom:1px solid #ffffff22;padding:5px 7px;text-align:left}
+th{color:#c9a24b}.up{color:#8fd18f}.down{color:#e09090}.warn{color:#e0bd6a}
+#err{color:#e09090;white-space:pre-wrap}
+</style></head><body>
+<header><h1>CENOTVORBA <b>moje-zlato.cz</b> · StoneX → Shoptet</h1></header><main>
+<fieldset><legend>PŘÍSTUP</legend>
+<label>Token: <input id=tok type=password placeholder="X-Token (je-li nastaven)"></label></fieldset>
+<fieldset><legend>VSTUPY</legend>
+<label>Ceník CSV (export Shoptet): <input id=cenik type=file accept=.csv required></label><br>
+<label>productsComplete XML (kategorie, volitelné): <input id=xml type=file accept=.xml></label><br>
+<label>StoneX PDF ručně (volitelné, má přednost před on-line stažením): <input id=pdfs type=file accept=.pdf multiple></label>
+</fieldset>
+<fieldset><legend>PARAMETRY</legend>
+<label>Kovy: <label><input type=checkbox class=met value=gold checked>zlato</label>
+<label><input type=checkbox class=met value=silver>stříbro</label>
+<label><input type=checkbox class=met value=platinum>platina</label>
+<label><input type=checkbox class=met value=palladium>palladium</label></label><br>
+<label>Spot: <select id=spotm><option value=pdf>implikovaný z PDF (doporučeno)</option>
+<option value=manual>ručně</option></select>
+<input id=spotv type=number step=0.01 placeholder="€/g" style="width:90px"></label>
+<label>Kurz: <select id=fxm><option value=cnb>ČNB automaticky</option>
+<option value=manual>ručně</option></select>
+<input id=fxv type=number step=0.001 placeholder="CZK/EUR" style="width:90px"></label><br>
+<label>Marže %: <input id=margin type=number step=0.05 value=1.25 style="width:80px"></label>
+<label>Pásma (JSON, volit.): <input id=bands placeholder='[{"max_g":10,"pct":5}]' style="width:240px"></label>
+<label>Zaokrouhlení: <select id=round><option>1</option><option>10</option><option>100</option></select> Kč</label>
+<label>Odběr ks (pásmo prémie): <input id=qty type=number value=1 style="width:60px"></label>
+</fieldset>
+<button onclick=go('preview')>Náhled</button>
+<button onclick=go('csv')>Stáhnout CSV</button>
+<button onclick=go('xml')>Stáhnout XML</button>
+<div id=meta></div><div id=err></div><div id=out></div>
+<script>
+function fd(){const f=new FormData();
+ f.append('cenik',cenik.files[0]);
+ if(xml.files[0])f.append('xml',xml.files[0]);
+ for(const p of pdfs.files)f.append('pdfs',p);
+ f.append('metals',[...document.querySelectorAll('.met:checked')].map(x=>x.value).join(','));
+ f.append('spot_mode',spotm.value);f.append('spot_manual',spotv.value||'0');
+ f.append('fx_mode',fxm.value);f.append('fx_manual',fxv.value||'0');
+ f.append('margin',margin.value);f.append('bands',bands.value);
+ f.append('rounding',document.getElementById('round').value);f.append('qty',qty.value);
+ return f}
+async function go(mode){err.textContent='';out.innerHTML='';meta.textContent='Pracuji…';
+ if(!cenik.files[0]){err.textContent='Nahrajte ceník CSV.';meta.textContent='';return}
+ const f=fd();const h={'X-Token':tok.value};
+ try{
+  if(mode=='preview'){
+   const r=await fetch('/api/preview',{method:'POST',body:f,headers:h});
+   if(!r.ok)throw new Error(await r.text());
+   const d=await r.json();
+   meta.textContent=`Katalog: ${d.meta.katalog} · Spot: ${d.meta.spot} · Kurz: ${d.meta.kurz} · Oceněno: ${d.meta.oceneno} · Přeskočeno: ${d.meta.preskoceno}`;
+   let h1='<table><tr><th>code</th><th>název</th><th>StoneX</th><th>váha g</th><th>prémie €</th><th>nákup CZK</th><th>stará</th><th>NOVÁ cena</th><th>Δ%</th><th>shoda</th></tr>';
+   for(const r of d.rows){const o=parseFloat((r._stara_cena||'0').replace(',','.'));
+    const dl=o?((r.price-o)/o*100):0;const cls=dl>0?'up':dl<0?'down':'';
+    h1+=`<tr><td>${r.code}</td><td>${r.name}</td><td>${r._stonex}</td><td>${r._wg}</td><td>${r._prem_eur}</td><td>${r.purchasePrice}</td><td>${r._stara_cena}</td><td><b>${r.price}</b></td><td class=${cls}>${o?dl.toFixed(2):''}</td><td class=${r._shoda=='přesná'?'':'warn'}>${r._shoda}</td></tr>`}
+   h1+='</table>';
+   if(d.skipped.length){h1+=`<p class=warn>Přeskočeno ${d.skipped.length}:</p><table><tr><th>code</th><th>název</th><th>důvod</th></tr>`;
+    for(const s of d.skipped)h1+=`<tr><td>${s.code||''}</td><td>${s.name||''}</td><td>${s.duvod}</td></tr>`;h1+='</table>'}
+   out.innerHTML=h1;
+  }else{
+   f.append('fmt',mode);
+   const r=await fetch('/api/export',{method:'POST',body:f,headers:h});
+   if(!r.ok)throw new Error(await r.text());
+   const b=await r.blob();const a=document.createElement('a');
+   a.href=URL.createObjectURL(b);
+   a.download=(r.headers.get('Content-Disposition')||'').split('filename=')[1]||('ceny.'+mode);
+   a.click();meta.textContent='Soubor stažen.';
+  }
+ }catch(e){err.textContent=e.message;meta.textContent=''}
+}
+</script></main></body></html>"""

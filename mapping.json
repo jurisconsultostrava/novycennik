@@ -1,0 +1,674 @@
+{
+ "118321": {
+  "stonex": "1 oz American Eagle Gold Coin | 2026",
+  "shoda": "přesná"
+ },
+ "11806": {
+  "stonex": "1 oz American Eagle Gold Coin | Mixed Years",
+  "shoda": "přesná"
+ },
+ "109397": {
+  "stonex": "1 oz Britannia Charles III Gold Coin | 2026",
+  "shoda": "přesná"
+ },
+ "12205": {
+  "stonex": "1 oz Cook Island Armillary Valcambi Gold Coin",
+  "shoda": "přesná"
+ },
+ "3002064": {
+  "stonex": "1 oz Gold Bar | Argor-Heraeus",
+  "shoda": "přesná"
+ },
+ "3002077": {
+  "stonex": "1 oz Gold Bar | Argor-Heraeus | Kinebar",
+  "shoda": "přesná"
+ },
+ "3002330": {
+  "stonex": "1 oz Gold Bar | Argor-Heraeus | Year Of The Horse | 2026",
+  "shoda": "přesná"
+ },
+ "3002014": {
+  "stonex": "1 oz Gold Bar | PAMP Fortuna",
+  "shoda": "přesná"
+ },
+ "3002152": {
+  "stonex": "1 oz Gold Bar | PAMP Suisse",
+  "shoda": "přesná"
+ },
+ "3002018": {
+  "stonex": "1 oz Gold Bar | Umicore",
+  "shoda": "přesná"
+ },
+ "30075": {
+  "stonex": "1 oz Gold Bar | Valcambi",
+  "shoda": "přesná"
+ },
+ "3002146": {
+  "stonex": "1 oz Gold Bar | Valcambi | Green Gold",
+  "shoda": "přesná"
+ },
+ "101461": {
+  "stonex": "1 oz Kangaroo Gold Coin | 2026",
+  "shoda": "přesná"
+ },
+ "10120": {
+  "stonex": "1 oz Kangaroo Nugget Gold Coin | Mixed Years",
+  "shoda": "přesná"
+ },
+ "101466": {
+  "stonex": "1 oz Koala Gold Coin | Royal Australia Mint | 2026",
+  "shoda": "přesná"
+ },
+ "116276": {
+  "stonex": "1 oz Krugerrand Gold Coin | 2026",
+  "shoda": "přesná"
+ },
+ "11607": {
+  "stonex": "1 oz Krugerrand Gold Coin | Mixed Years",
+  "shoda": "přesná"
+ },
+ "109284": {
+  "stonex": "1 oz Queen's Beasts Yale of Beaufort Gold Coin (2019)",
+  "shoda": "přesná"
+ },
+ "118325": {
+  "stonex": "1 oz American Buffalo Gold Coin | 2026",
+  "shoda": "přesná"
+ },
+ "118306": {
+  "stonex": "1 oz American Eagle Gold Coin | 2025",
+  "shoda": "přesná"
+ },
+ "109406": {
+  "stonex": "1 oz St George and the Dragon Gold Coin | 2026",
+  "shoda": "přesná"
+ },
+ "101458": {
+  "stonex": "1 oz Lunar III Horse Gold Coin | 2026",
+  "shoda": "přesná"
+ },
+ "104320": {
+  "stonex": "1 oz Maple Leaf Gold Coin | 2026",
+  "shoda": "přesná"
+ },
+ "109398": {
+  "stonex": "1 oz Tudor Beasts Queens Lion Gold Coin | 2026",
+  "shoda": "přesná"
+ },
+ "109407": {
+  "stonex": "1 oz Tudor Beasts Royal Dragon Gold Coin | 2026",
+  "shoda": "přesná"
+ },
+ "102101": {
+  "stonex": "1 oz Vienna Philharmonic Gold Coin | 2026",
+  "shoda": "přesná"
+ },
+ "10215": {
+  "stonex": "1 oz Vienna Philharmonic Gold Coin | Mixed Years",
+  "shoda": "přesná"
+ },
+ "3002115": {
+  "stonex": "1/2 oz Gold Bar | PAMP Fortuna",
+  "shoda": "přesná"
+ },
+ "3002256": {
+  "stonex": "1/2 oz Gold Bar | Valcambi",
+  "shoda": "přesná"
+ },
+ "3002126": {
+  "stonex": "10 x 1/10 oz CombiBar® | Gold | Valcambi",
+  "shoda": "přesná"
+ },
+ "3002066": {
+  "stonex": "100 x 1g CombiBar® | Gold | Valcambi",
+  "shoda": "přesná"
+ },
+ "3002205": {
+  "stonex": "100g Britannia Gold Bar | Royal Mint",
+  "shoda": "přesná"
+ },
+ "3002079": {
+  "stonex": "100g Gold Bar | Argor Heraeus | Casted",
+  "shoda": "přesná"
+ },
+ "3002162": {
+  "stonex": "100g Gold Bar | Argor-Heraeus | Kinebar",
+  "shoda": "přesná"
+ },
+ "3002026": {
+  "stonex": "100g Gold Bar | Argor-Heraeus | Minted",
+  "shoda": "přesná"
+ },
+ "3002119": {
+  "stonex": "100g Gold Bar | PAMP Fortuna",
+  "shoda": "přesná"
+ },
+ "30059": {
+  "stonex": "100g Gold Bar | Umicore | Minted",
+  "shoda": "přesná"
+ },
+ "3002148": {
+  "stonex": "100g Gold Bar | Valcambi | Green Gold",
+  "shoda": "přesná"
+ },
+ "30062": {
+  "stonex": "100g Gold Bar | Valcambi | Minted",
+  "shoda": "přesná"
+ },
+ "3002221": {
+  "stonex": "10g Britannia Gold Bar | Royal Mint",
+  "shoda": "přesná"
+ },
+ "3002308": {
+  "stonex": "10g Gold Bar | Umicore",
+  "shoda": "přesná"
+ },
+ "30014": {
+  "stonex": "10g Gold Bar | Perth Mint",
+  "shoda": "přesná"
+ },
+ "30081": {
+  "stonex": "10g Gold Bar | Valcambi",
+  "shoda": "přesná"
+ },
+ "3002102": {
+  "stonex": "10g Gold Bar | PAMP Fortuna",
+  "shoda": "přesná"
+ },
+ "109287": {
+  "stonex": "1 oz Queen's Beasts White Lion Gold Coin | 2020",
+  "shoda": "přesná"
+ },
+ "109409": {
+  "stonex": "1 oz The Angel Gold Coin | 2026",
+  "shoda": "přesná"
+ },
+ "109405": {
+  "stonex": "1 oz The British Lion Gold Coin | 2026",
+  "shoda": "přesná"
+ },
+ "30094": {
+  "stonex": "20 x 1g CombiBar® | Gold | Valcambi",
+  "shoda": "přesná"
+ },
+ "3002203": {
+  "stonex": "20g Britannia Gold Bar | Royal Mint",
+  "shoda": "přesná"
+ },
+ "30054": {
+  "stonex": "20g Gold Bar | Argor-Heraeus",
+  "shoda": "přesná"
+ },
+ "30097": {
+  "stonex": "20g Gold Bar | Argor-Heraeus | Kinebar",
+  "shoda": "přesná"
+ },
+ "3002103": {
+  "stonex": "20g Gold Bar | PAMP Fortuna",
+  "shoda": "přesná"
+ },
+ "30015": {
+  "stonex": "20g Gold Bar | Perth Mint",
+  "shoda": "přesná"
+ },
+ "30055": {
+  "stonex": "20g Gold Bar | Umicore",
+  "shoda": "přesná"
+ },
+ "30080": {
+  "stonex": "20g Gold Bar | Valcambi",
+  "shoda": "přesná"
+ },
+ "3002145": {
+  "stonex": "20g Gold Bar | Valcambi | Green Gold",
+  "shoda": "přesná"
+ },
+ "3002085": {
+  "stonex": "25 x 1g PAMP Multigram Gold Bar",
+  "shoda": "přesná"
+ },
+ "3002164": {
+  "stonex": "250g Gold Bar | Argor-Heraeus | Casted",
+  "shoda": "přesná"
+ },
+ "3002050": {
+  "stonex": "250g Gold Bar | Umicore",
+  "shoda": "přesná"
+ },
+ "3002139": {
+  "stonex": "250g Gold Bar | Valcambi | Casted",
+  "shoda": "přesná"
+ },
+ "3002253": {
+  "stonex": "5 x 1g CombiBar Star | Gold | Valcambi | Booklet",
+  "shoda": "přesná"
+ },
+ "30023": {
+  "stonex": "50 x 1g CombiBar® | Gold | Valcambi",
+  "shoda": "přesná"
+ },
+ "3002165": {
+  "stonex": "500g Gold Bar | Argor-Heraeus | Casted",
+  "shoda": "přesná"
+ },
+ "3002140": {
+  "stonex": "500g Gold Bar | Valcambi | Casted",
+  "shoda": "přesná"
+ },
+ "3002204": {
+  "stonex": "50g Britannia Gold Bar | Royal Mint",
+  "shoda": "přesná"
+ },
+ "3002069": {
+  "stonex": "5g Gold Bar | Argor-Heraeus | Kinebar",
+  "shoda": "přesná"
+ },
+ "3002078": {
+  "stonex": "50g Gold Bar | Argor-Heraeus | Kinebar",
+  "shoda": "přesná"
+ },
+ "3002073": {
+  "stonex": "50g Gold Bar | Argor-Heraeus | Minted",
+  "shoda": "přesná"
+ },
+ "3002202": {
+  "stonex": "5g Britannia Gold Bar | Royal Mint",
+  "shoda": "přesná"
+ },
+ "30033": {
+  "stonex": "5g Gold Bar | Argor-Heraeus",
+  "shoda": "přesná"
+ },
+ "3002328": {
+  "stonex": "5g Gold Bar | Argor-Heraeus | Year Of The Horse | 2026",
+  "shoda": "přesná"
+ },
+ "3002071": {
+  "stonex": "10g Gold Bar | Argor-Heraeus",
+  "shoda": "přesná"
+ },
+ "3002144": {
+  "stonex": "10g Gold Bar | Valcambi | Green Gold",
+  "shoda": "přesná"
+ },
+ "3002147": {
+  "stonex": "50g Gold Bar | Valcambi | Green Gold",
+  "shoda": "přesná"
+ },
+ "3002335": {
+  "stonex": "5g Gold Bar | PAMP | America the Free: Bald Eagle",
+  "shoda": "přesná"
+ },
+ "3002337": {
+  "stonex": "5g Gold Bar | PAMP | Buddha",
+  "shoda": "přesná"
+ },
+ "3002332": {
+  "stonex": "5g Gold Bar | PAMP | Eid Mubarak",
+  "shoda": "přesná"
+ },
+ "300233": {
+  "stonex": "5g Gold Bar | PAMP | Lucky Scarab",
+  "shoda": "přesná"
+ },
+ "3002101": {
+  "stonex": "5g Gold Bar | PAMP Fortuna",
+  "shoda": "přesná"
+ },
+ "3002321": {
+  "stonex": "5g Gold Bar | PAMP Fortuna | Arabian Falcon with Frame",
+  "shoda": "přesná"
+ },
+ "3002215": {
+  "stonex": "5g Gold Bar | PAMP Rose",
+  "shoda": "přesná"
+ },
+ "3002028": {
+  "stonex": "5g Gold Bar | Umicore",
+  "shoda": "přesná"
+ },
+ "30082": {
+  "stonex": "5g Gold Bar | Valcambi",
+  "shoda": "přesná"
+ },
+ "3002143": {
+  "stonex": "5g Gold Bar | Valcambi | Green Gold",
+  "shoda": "přesná"
+ },
+ "11807": {
+  "stonex": "1 oz American Buffalo Gold Coin | 2026",
+  "shoda": "ke kontrole"
+ },
+ "109400": {
+  "stonex": "1 oz Bond of the 2010's Gold Coin | 2026",
+  "shoda": "ke kontrole"
+ },
+ "10906": {
+  "stonex": "1 oz Britannia Gold Coin | Mixed Years | 999.9",
+  "shoda": "přesná"
+ },
+ "109293": {
+  "stonex": "1 oz Queen's Beasts White Lion Gold Coin | 2020",
+  "shoda": "ke kontrole"
+ },
+ "104304": {
+  "stonex": "1 oz Maple Leaf Gold Coin | 2026",
+  "shoda": "ke kontrole"
+ },
+ "11211": {
+  "stonex": "1 oz Mexican Libertad | Gold | mixed years",
+  "shoda": "přesná"
+ },
+ "13115": {
+  "stonex": "1 oz Kangaroo Gold Coin | 2026",
+  "shoda": "ke kontrole"
+ },
+ "30012": {
+  "stonex": "1 oz Gold Bar | Different Manufacturers",
+  "shoda": "přesná"
+ },
+ "1NU03": {
+  "stonex": "1 oz Gold Coin Bitcoin",
+  "shoda": "přesná"
+ },
+ "3002017": {
+  "stonex": "50g Gold Bar | Umicore",
+  "shoda": "přesná"
+ },
+ "10406": {
+  "stonex": "1 oz Maple Leaf Gold Coin | Mixed Years",
+  "shoda": "přesná"
+ },
+ "109389": {
+  "stonex": "1 oz The Royal Arms Gold Coin | Mixed Years",
+  "shoda": "přesná"
+ },
+ "10288": {
+  "stonex": "1 oz Vienna Philharmonic Gold Coin | Mixed Years",
+  "shoda": "ke kontrole"
+ },
+ "3002273": {
+  "stonex": "1/2 oz Gold Bar | PAMP Fortuna",
+  "shoda": "ke kontrole"
+ },
+ "3002275": {
+  "stonex": "100g Gold Bar | PAMP Fortuna",
+  "shoda": "ke kontrole"
+ },
+ "3002306": {
+  "stonex": "10g Gold Bar | PAMP Fortuna",
+  "shoda": "ke kontrole"
+ },
+ "3002326": {
+  "stonex": "1 oz Gold Bar | Argor-Heraeus | Year Of The Horse | 2026",
+  "shoda": "ke kontrole"
+ },
+ "3002272": {
+  "stonex": "20g Gold Bar | PAMP Fortuna",
+  "shoda": "ke kontrole"
+ },
+ "30068": {
+  "stonex": "250g Gold Bar | Valcambi | Minted",
+  "shoda": "přesná"
+ },
+ "3002245": {
+  "stonex": "500g Gold Bar | Argor-Heraeus | Casted",
+  "shoda": "ke kontrole"
+ },
+ "209252": {
+  "stonex": "1 oz Britannia Charles III Gold Coin | 2026",
+  "shoda": "ke kontrole"
+ },
+ "209258": {
+  "stonex": "1 oz Bond of the 2010's Gold Coin | 2026",
+  "shoda": "ke kontrole"
+ },
+ "11623": {
+  "stonex": "1 oz Krugerrand Gold Coin | Mixed Years",
+  "shoda": "ke kontrole"
+ },
+ "3002149": {
+  "stonex": "50g Gold Bar | Valcambi | Casted",
+  "shoda": "přesná"
+ },
+ "201386": {
+  "stonex": "1 oz Lunar III Horse Gold Coin | 2026",
+  "shoda": "ke kontrole"
+ },
+ "21206": {
+  "stonex": "1 oz Mexican Libertad | Gold | mixed years",
+  "shoda": "ke kontrole"
+ },
+ "51814": {
+  "stonex": "1 oz American Eagle Gold Coin | Mixed Years",
+  "shoda": "ke kontrole"
+ },
+ "50919": {
+  "stonex": "1 oz Britannia Charles III Gold Coin | 2026",
+  "shoda": "ke kontrole"
+ },
+ "50126": {
+  "stonex": "1 oz Lunar III Horse Gold Coin | 2026",
+  "shoda": "ke kontrole"
+ },
+ "50417": {
+  "stonex": "1 oz Maple Leaf Gold Coin | Mixed Years",
+  "shoda": "ke kontrole"
+ },
+ "30045": {
+  "stonex": "1 oz Gold Bar | Argor-Heraeus",
+  "shoda": "ke kontrole"
+ },
+ "109295": {
+  "stonex": "1 oz Queen's Beasts White Greyhound of Richmond Gold Coin (2021)",
+  "shoda": "přesná"
+ },
+ "80007": {
+  "stonex": "1 oz Gold Bar | Valcambi",
+  "shoda": "ke kontrole"
+ },
+ "109410": {
+  "stonex": "1 oz Bond of the 2010's Gold Coin | 2026",
+  "shoda": "přesná"
+ },
+ "3002076": {
+  "stonex": "10g Gold Bar | Argor Heraeus | Kinebar",
+  "shoda": "přesná"
+ },
+ "80015": {
+  "stonex": "1 oz Gold Bar | Argor-Heraeus",
+  "shoda": "ke kontrole"
+ },
+ "109224": {
+  "stonex": "1 oz Queen's Beasts Lion Gold Coin (2016)",
+  "shoda": "přesná"
+ },
+ "3002329": {
+  "stonex": "10g Gold Bar | Argor-Heraeus | Year Of The Horse | 2026",
+  "shoda": "přesná"
+ },
+ "3002104": {
+  "stonex": "50g Gold Bar | PAMP Fortuna",
+  "shoda": "přesná"
+ },
+ "3002274": {
+  "stonex": "50g Gold Bar | PAMP Fortuna",
+  "shoda": "ke kontrole"
+ },
+ "201398": {
+  "stonex": "1 oz Emu Perth Mint Gold Coin | 2026",
+  "shoda": "ke kontrole"
+ },
+ "209255": {
+  "stonex": "1 oz St George and the Dragon Gold Coin | 2026",
+  "shoda": "ke kontrole"
+ },
+ "101468": {
+  "stonex": "1 oz Emu Perth Mint Gold Coin | 2026",
+  "shoda": "přesná"
+ },
+ "3002118": {
+  "stonex": "50g Gold Bar | Valcambi | Minted",
+  "shoda": "přesná"
+ },
+ "3002216": {
+  "stonex": "1 oz Gold Bar | PAMP Fortuna",
+  "shoda": "ke kontrole"
+ },
+ "109274": {
+  "stonex": "1 oz Queen's Beasts Yale of Beaufort Gold Coin (2019)",
+  "shoda": "ke kontrole"
+ },
+ "109252": {
+  "stonex": "1 oz Queen's Beasts Lion Gold Coin (2016)",
+  "shoda": "ke kontrole"
+ },
+ "5836": {
+  "stonex": "1 oz Gold Bar | Umicore",
+  "shoda": "přesná"
+ },
+ "5833": {
+  "stonex": "1 oz Gold Bar | Valcambi",
+  "shoda": "přesná"
+ },
+ "118215": {
+  "stonex": "20 Dollar Double Eagle \"Liberty Head\" | Gold | 1850-1907",
+  "shoda": "přesná"
+ },
+ "11015": {
+  "stonex": "20 French Francs Angel (Génie) 3rd Republic | Gold | 1871-1898",
+  "shoda": "přesná"
+ },
+ "11014": {
+  "stonex": "20 French Francs Cérès 2nd Republic | Gold | 1848-1852",
+  "shoda": "přesná"
+ },
+ "11012": {
+  "stonex": "20 French Francs Marianne Rooster Gold Coin | 1899-1914",
+  "shoda": "přesná"
+ },
+ "11021": {
+  "stonex": "20 French Francs Napoléon III | Gold | 1853-1860",
+  "shoda": "přesná"
+ },
+ "11013": {
+  "stonex": "20 French Francs Napoleon III Bonaparte | Gold | Mixed Years",
+  "shoda": "přesná"
+ },
+ "10702": {
+  "stonex": "20 Kroner Frederik VIII Denmark | Gold | 1908-1912",
+  "shoda": "přesná"
+ },
+ "10703": {
+  "stonex": "20 Kroner Christian X Denmark Gold Coin | 1913-1917",
+  "shoda": "přesná"
+ },
+ "11703": {
+  "stonex": "20 Swiss Francs Helvetica | Gold | 1883-1896",
+  "shoda": "přesná"
+ },
+ "11701": {
+  "stonex": "20 Swiss Francs Vreneli | Gold | 1897-1949",
+  "shoda": "přesná"
+ },
+ "J00004": {
+  "stonex": "22kt Gold Round Cable Chain Necklace",
+  "shoda": "přesná"
+ },
+ "J00003": {
+  "stonex": "22kt Gold Wheat Chain Necklace",
+  "shoda": "přesná"
+ },
+ "11201": {
+  "stonex": "50 Gold Mexican Pesos | 1821-1947",
+  "shoda": "přesná"
+ },
+ "3002292": {
+  "stonex": "10g Gold Bar | Argor-Heraeus",
+  "shoda": "přesná"
+ },
+ "3002092": {
+  "stonex": "10g Gold Bar | Argor-Heraeus",
+  "shoda": "ke kontrole"
+ },
+ "3002093": {
+  "stonex": "20g Gold Bar | C.Hafner",
+  "shoda": "přesná"
+ },
+ "109377": {
+  "stonex": "Half Sovereign Charles III Gold Coin | 2026",
+  "shoda": "vysoká"
+ },
+ "30007": {
+  "stonex": "250g Gold Bar | Umicore",
+  "shoda": "ke kontrole"
+ },
+ "10902": {
+  "stonex": "King Edward VII Gold Sovereign | 1902-1910",
+  "shoda": "přesná"
+ },
+ "10903": {
+  "stonex": "King George V Gold Sovereign | 1911-1932",
+  "shoda": "přesná"
+ },
+ "4461": {
+  "stonex": "10g Gold Bar | PAMP Fortuna",
+  "shoda": "vysoká"
+ },
+ "3002311": {
+  "stonex": "5g Gold Bar | PAMP | Buddha",
+  "shoda": "vysoká"
+ },
+ "101446": {
+  "stonex": "1 oz Emu Perth Mint Gold Coin | 2025",
+  "shoda": "vysoká"
+ },
+ "10904": {
+  "stonex": "Queen Elizabeth II Gold Sovereign | 1957-2021",
+  "shoda": "přesná"
+ },
+ "10928": {
+  "stonex": "Queen Victoria Jubilee Gold Sovereign | 1887-1893",
+  "shoda": "přesná"
+ },
+ "10901": {
+  "stonex": "Queen Victoria Old Head Gold Sovereign | 1893-1901",
+  "shoda": "přesná"
+ },
+ "10927": {
+  "stonex": "Queen Victoria Old Head Gold Sovereign | 1893-1901",
+  "shoda": "ke kontrole"
+ },
+ "10407": {
+  "stonex": "1/4 oz Maple Leaf Gold Coin | 2026",
+  "shoda": "ke kontrole"
+ },
+ "109309": {
+  "stonex": "Sovereign Elizabeth II Gold Coin | 2022",
+  "shoda": "přesná"
+ },
+ "101447": {
+  "stonex": "1 Kilo Kangaroo Gold Coin | 2025",
+  "shoda": "ke kontrole"
+ },
+ "4458": {
+  "stonex": "10g Britannia Gold Bar | Royal Mint",
+  "shoda": "ke kontrole"
+ },
+ "109375": {
+  "stonex": "1 oz Britannia Gold Bar | Royal Mint",
+  "shoda": "ke kontrole"
+ },
+ "118310": {
+  "stonex": "1 oz American Buffalo Gold Coin | 2026",
+  "shoda": "ke kontrole"
+ },
+ "118302": {
+  "stonex": "1/2 oz American Eagle Gold Coin | 2026",
+  "shoda": "ke kontrole"
+ },
+ "11102": {
+  "stonex": "20 Italian Lira Umberto I | Gold | 1879-1897",
+  "shoda": "ke kontrole"
+ }
+}
