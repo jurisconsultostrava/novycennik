@@ -21,7 +21,7 @@ F_MARGIN     = float(os.environ.get("MARGIN_PCT", "1.25"))
 F_BANDS      = json.loads(os.environ.get("MARGIN_BANDS", "null") or "null")
 F_ROUND      = int(os.environ.get("ROUNDING", "1"))
 F_QTY        = int(os.environ.get("QTY", "1"))
-_feed = {"xml": None, "ts": 0, "meta": {}}
+_feed = {"xml": None, "ts": 0, "meta": {}, "last_error": None, "last_ok_ts": 0}
 
 _cache = {}   # {metal: (ts, items)}
 TTL = 600
@@ -159,8 +159,12 @@ async def mapping_set(body: dict, x_token: str = Header("")):
 
 def _regen_feed():
     catalog=[]
-    for met in FEED_METALS:
-        if met: catalog += core.parse_catalog(core.fetch_stonex_pdf(met.strip()))
+    try:
+        for met in FEED_METALS:
+            if met: catalog += core.parse_catalog(core.fetch_stonex_pdf(met.strip()))
+    except Exception as e:
+        _feed["last_error"] = f"{time.strftime('%Y-%m-%d %H:%M:%S')} UTC: stažení/parse selhalo: {e}"
+        raise
     spot, n = core.implied_spot(catalog)
     fx, d = core.cnb_eur_czk()
     mp = get_mapping()
@@ -174,6 +178,7 @@ def _regen_feed():
     _feed["ts"]=time.time()
     _feed["meta"]={"spot":spot,"fx":fx,"rows":len(rows),
                    "skipped":[s.get("code") for s in skipped],"info":meta}
+    _feed["last_ok_ts"]=time.time(); _feed["last_error"]=None
     log.info("feed přegenerován: %s", meta)
 
 @app.on_event("startup")
@@ -198,8 +203,19 @@ def feed_xml(token: str = ""):
 @app.get("/feed/status")
 def feed_status(x_token: str = Header("")):
     auth(x_token)
-    age = round((time.time()-_feed["ts"])/60,1) if _feed["ts"] else None
-    return {"stari_min": age, "interval_min": FEED_MIN, **_feed["meta"]}
+    now=time.time()
+    age = round((now-_feed["ts"])/60,1) if _feed["ts"] else None
+    ok_age = round((now-_feed["last_ok_ts"])/60,1) if _feed["last_ok_ts"] else None
+    stale = (age is None) or (age > FEED_MIN*2)
+    warn=None
+    if _feed["last_error"]:
+        warn=f"POZOR: poslední stažení z StoneX selhalo – {_feed['last_error']}. Feed slouží poslední úspěšná data."
+    elif stale:
+        warn="POZOR: feed je zastaralý (starší než 2× interval)."
+    return {"stav": "CHYBA" if _feed["last_error"] else ("ZASTARALÝ" if stale else "OK"),
+            "stari_feedu_min": age, "od_posledniho_uspechu_min": ok_age,
+            "interval_min": FEED_MIN, "posledni_chyba": _feed["last_error"],
+            "varovani": warn, **_feed["meta"]}
 
 @app.get("/", response_class=HTMLResponse)
 def ui():

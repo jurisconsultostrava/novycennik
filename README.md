@@ -84,13 +84,19 @@ volby se v administraci Shoptetu může lišit dle tarifu – ověřte ve svém 
 **Ruční ceník CSV už není pro aktualizace potřeba** – UI část s uploadem zůstává
 pro ad-hoc analýzy (Δ% proti starým cenám, kategorie, nespárované položky).
 
-## Přihlášení k dodavateli – stav a limity automatizace
-Celý automatický řetězec běží bez přihlášení (veřejné prémie; ověřeno).
-`STONEX_COOKIE` je jen dočasný můstek pro interaktivní běhy a pro cron se nehodí
-(session expiruje). Pokud klientský účet vidí jiné ceny než veřejné a mají se
-používat ve feedu, je nutné doprogramovat automatický login: pošlete jednorázově
-strukturu přihlašovacího requestu z DevTools (URL endpointu a názvy polí payloadu,
-BEZ hesla) a modul doplníme; údaje pak patří výhradně do proměnných
-`STONEX_USER`/`STONEX_PASS`. Pozn.: web běží za Cloudflare – pokud by datacentrová
-IP Railway dostávala challenge, řešením je proxy s rezidentní IP nebo dohoda
-s dodavatelem o API/feedu pro velkoobchodní klienty (nejčistší cesta).
+## Přístup k dodavateli: výhradně veřejný, bez autentizace
+Ceny StoneX jsou stejné pro všechny (klientský účet nezobrazuje jiné prémie než
+veřejné – potvrzeno). Aplikace se proto k dodavateli **nikdy nepřihlašuje**:
+nepoužívá žádné cookie, uživatelské jméno ani heslo a žádné takové proměnné
+neexistují. Katalogové PDF i detaily produktů se čtou z veřejné vrstvy webu.
+
+**Jediný zbývající provozní předpoklad je technický, ne přístupový:** web běží za
+Cloudflare. Veřejná dostupnost byla ověřena z běžného prostředí; není zaručeno, že
+datacentrová IP Railway nedostane občas Cloudflare challenge. Proto feed hlásí stav
+zdroje: `GET /feed/status` vrací pole `stav` (OK / ZASTARALÝ / CHYBA), čas od
+posledního úspěšného stažení a text `posledni_chyba`. Feed při chybě stažení
+neservíruje prázdno – ponechá poslední úspěšná data a chybu zviditelní ve statusu,
+aby výpadek zdroje bylo vidět z monitoringu dřív, než se v e-shopu zastaví ceny.
+Pokud by challenge nastávala trvale, řešením je proxy s rezidentní IP nebo
+velkoobchodní datový feed/API přímo od StoneX (nejčistší cesta) – obojí je změna
+konfigurace, ne přihlašování.

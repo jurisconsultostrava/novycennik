@@ -9,10 +9,9 @@ from core import norm, implied_spot, czk_fmt
 LIST_URL = "https://stonexbullion.com/en/{path}/?page={page}"
 PATHS = {"gold": "gold", "silver": "silver",
          "platinum": "platinum-palladium", "palladium": "platinum-palladium"}
-import os
+# Přístup k dodavateli je výhradně veřejný – ceny jsou stejné pro všechny,
+# přihlašování se nepoužívá (potvrzeno). Žádné přihlašovací údaje ani cookie.
 HDRS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) cenotvorba-mz/1.0"}
-if os.environ.get("STONEX_COOKIE"):        # session z prohlížeče (klientské ceny)
-    HDRS["Cookie"] = os.environ["STONEX_COOKIE"]
 
 def _get(url):
     r = httpx.get(url, timeout=40, follow_redirects=True, headers=HDRS)
