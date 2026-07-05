@@ -51,3 +51,13 @@ Railway **efemérní** (zaniká redeployem), trvalé změny patří do repa.
 ## Bezpečnostní poznámky
 - `APP_TOKEN` nastavit vždy; repo držet privátní (mapping.json prozrazuje dodavatele).
 - Aplikace nikam neukládá nahrané soubory; vše se zpracovává v paměti požadavku.
+
+## Novinky od dodavatele (modul novinky.py)
+Sekce „Novinky" projde výpis kategorií StoneX, vybere položky, které e-shop nemá
+(porovnání normalizovaných názvů proti mapping.json), stáhne jejich detaily a vygeneruje
+CSV nových produktů: `code`(=Product number), `name`, `price`/`purchasePrice`
+(spot×váha+prémie ×kurz ×marže), `variant:Váha`(fine weight g), `manufacturer`(=Mint),
+`availability`(počet ks u dodavatele / delší expedice), `image`(CDN URL). Sold out se
+vynechává; sloupec Category se nechává prázdný k redakčnímu doplnění. Parser detailu je
+zkalibrován proti reálné stránce (ověřeno vč. cenové rovnice na cent); scraping je
+šetrný (pauzy mezi požadavky), pro první test použijte Limit=5.

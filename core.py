@@ -159,3 +159,18 @@ def load_categories_from_xml(xml_bytes):
         c = it.find(".//DEFAULT_CATEGORY")
         if g and c is not None: out[g] = c.text or ""
     return out
+
+import unicodedata
+def norm(name):
+    """Normalizace názvu pro porovnávání (CZ<->EN, diakritika, jednotky)."""
+    s=unicodedata.normalize('NFD',name.lower())
+    s=''.join(c for c in s if unicodedata.category(c)!='Mn')
+    s=s.replace('\u00ae','').replace('|',' ').replace('"',' ').replace("'",' ')
+    s=re.sub(r'zlaty slitek',' gold bar ',s)
+    s=re.sub(r'zlata (investicni )?mince',' gold coin ',s)
+    s=s.replace('argor-heraeus','argorheraeus').replace('argor heraeus','argorheraeus')
+    s=re.sub(r'\(|\)',' ',s)
+    s=re.sub(r'\bmixed years\b','mixedyears',s)
+    s=re.sub(r'\b1 kilo\b','1kg',s); s=re.sub(r'\b1 kg\b','1kg',s)
+    s=re.sub(r'(\d)\s*g\b',r'\1g',s); s=re.sub(r'(\d|/\d)\s*oz\b',r'\1oz',s)
+    return set(re.sub(r'\s+',' ',s).strip().split())

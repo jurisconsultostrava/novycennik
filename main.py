@@ -7,6 +7,7 @@ import os, io, csv, json, time, logging
 from fastapi import FastAPI, UploadFile, File, Form, Header, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 import core
+import novinky as nv
 
 log = logging.getLogger("cenotvorba")
 app = FastAPI(title="Cenotvorba moje-zlato.cz")
@@ -105,6 +106,34 @@ async def export(fmt: str = Form("csv"), cenik: UploadFile = File(...),
     return Response(core.export_csv(rows), media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": f"attachment; filename=ceny-{stamp}.csv"})
 
+
+@app.post("/api/novinky")
+async def novinky_ep(fmt: str = Form("preview"), metals: str = Form("gold"),
+                     pdfs: list[UploadFile] = File(None),
+                     spot_mode: str = Form("pdf"), spot_manual: str = Form("0"),
+                     fx_mode: str = Form("cnb"), fx_manual: str = Form("0"),
+                     margin: str = Form("1.25"), rounding: str = Form("1"),
+                     limit: str = Form("0"), x_token: str = Header("")):
+    """Nespárované položky dodavatele s prodejní cenou (bez sold out)
+    jako nové produkty vč. Product number, Mint, dostupnosti a obrázku."""
+    auth(x_token)
+    pdf_bytes=[await p.read() for p in (pdfs or []) if p.filename]
+    catalog,_=get_catalog([m for m in metals.split(",") if m], pdf_bytes)
+    spot, si, fx, fi = params_common(spot_mode, spot_manual, fx_mode, fx_manual, catalog)
+    rows_all, errs = [], []
+    for m in metals.split(","):
+        if not m: continue
+        r,e = nv.collect_new(get_mapping(), m, spot, fx, float(margin),
+                             int(rounding), limit=int(limit) or None)
+        rows_all+=r; errs+=e
+    if fmt=="csv":
+        stamp=time.strftime("%Y%m%d-%H%M")
+        return Response(nv.export_new_csv(rows_all), media_type="text/csv; charset=utf-8",
+          headers={"Content-Disposition": f"attachment; filename=nove-produkty-{stamp}.csv"})
+    return JSONResponse({"meta":{"spot":f"{spot} €/g ({si})","kurz":f"{fx} ({fi})",
+      "novinek":len(rows_all),"chyb":len(errs)},"rows":rows_all,
+      "errs":[{"name":a,"url":b,"err":c} for a,b,c in errs]})
+
 @app.get("/api/mapping")
 def mapping_get(x_token: str = Header("")):
     auth(x_token); return get_mapping()
@@ -166,6 +195,14 @@ th{color:#c9a24b}.up{color:#8fd18f}.down{color:#e09090}.warn{color:#e0bd6a}
 <label>Zaokrouhlení: <select id=round><option>1</option><option>10</option><option>100</option></select> Kč</label>
 <label>Odběr ks (pásmo prémie): <input id=qty type=number value=1 style="width:60px"></label>
 </fieldset>
+<fieldset><legend>NOVINKY OD DODAVATELE</legend>
+<label>Limit položek (0 = vše): <input id=nlimit type=number value=0 style="width:70px"></label>
+<button onclick=novinky('preview')>Náhled novinek</button>
+<button onclick=novinky('csv')>Stáhnout CSV novinek</button>
+<p style="font-size:12px;color:#a8b3a2;margin:6px 0 0">Položky dodavatele, které e-shop nemá
+(dle mapy párování), s dostupnou prodejní cenou; sold out se vynechává. Přenáší se:
+Product number → code, Mint → výrobce, hmotnost, dostupnost a CDN obrázek.
+Sloupec Category zůstává prázdný k doplnění před importem.</p></fieldset>
 <button onclick=go('preview')>Náhled</button>
 <button onclick=go('csv')>Stáhnout CSV</button>
 <button onclick=go('xml')>Stáhnout XML</button>
@@ -207,6 +244,30 @@ async function go(mode){err.textContent='';out.innerHTML='';meta.textContent='Pr
    a.download=(r.headers.get('Content-Disposition')||'').split('filename=')[1]||('ceny.'+mode);
    a.click();meta.textContent='Soubor stažen.';
   }
+ }catch(e){err.textContent=e.message;meta.textContent=''}
+}
+
+async function novinky(mode){err.textContent='';out.innerHTML='';meta.textContent='Stahuji detaily produktů, může to trvat i minuty…';
+ const f=new FormData();
+ for(const p of pdfs.files)f.append('pdfs',p);
+ f.append('metals',[...document.querySelectorAll('.met:checked')].map(x=>x.value).join(','));
+ f.append('spot_mode',spotm.value);f.append('spot_manual',spotv.value||'0');
+ f.append('fx_mode',fxm.value);f.append('fx_manual',fxv.value||'0');
+ f.append('margin',margin.value);f.append('rounding',document.getElementById('round').value);
+ f.append('limit',nlimit.value||'0');f.append('fmt',mode=='csv'?'csv':'preview');
+ try{
+  const r=await fetch('/api/novinky',{method:'POST',body:f,headers:{'X-Token':tok.value}});
+  if(!r.ok)throw new Error(await r.text());
+  if(mode=='csv'){const b=await r.blob();const a=document.createElement('a');
+   a.href=URL.createObjectURL(b);a.download='nove-produkty.csv';a.click();
+   meta.textContent='Soubor stažen.';return}
+  const d=await r.json();
+  meta.textContent=`Spot: ${d.meta.spot} · Kurz: ${d.meta.kurz} · Novinek: ${d.meta.novinek} · Chyb: ${d.meta.chyb}`;
+  let h='<table><tr><th>code</th><th>název</th><th>výrobce (Mint)</th><th>váha g</th><th>dostupnost</th><th>nákup CZK</th><th>cena CZK</th><th>obrázek</th></tr>';
+  for(const x of d.rows)h+=`<tr><td>${x.code}</td><td><a href="${x.url}" target=_blank style="color:#c9a24b">${x.name}</a></td><td>${x.manufacturer}</td><td>${x['variant:Váha']}</td><td>${x.availability}</td><td>${x.purchasePrice}</td><td><b>${x.price}</b></td><td>${x.image?'✓':'—'}</td></tr>`;
+  h+='</table>';
+  if(d.errs.length){h+='<p class=warn>Chyby:</p>';for(const e of d.errs)h+=`<div class=warn style="font-size:12px">${e.name}: ${e.err}</div>`}
+  out.innerHTML=h;
  }catch(e){err.textContent=e.message;meta.textContent=''}
 }
 </script></main></body></html>"""
