@@ -9,7 +9,6 @@ from fastapi.responses import HTMLResponse, JSONResponse, Response
 import core
 import novinky as nv
 import obohaceni as ob
-import openpyxl
 
 log = logging.getLogger("cenotvorba")
 app = FastAPI(title="Cenotvorba moje-zlato.cz")
@@ -161,6 +160,11 @@ async def obohatit(soubor: UploadFile = File(...), categories: UploadFile = File
     rows=[]
     if soubor.filename.lower().endswith((".xlsx",".xlsm")):
         import io as _io
+        try:
+            import openpyxl
+        except ModuleNotFoundError:
+            raise HTTPException(500, "Knihovna openpyxl není nainstalovaná – nahrajte "
+                "soubor jako CSV, nebo přidejte openpyxl do requirements.txt a redeployujte.")
         wb=openpyxl.load_workbook(_io.BytesIO(raw), data_only=True)
         ws=wb.active
         hdr=[str(c.value).strip() if c.value is not None else "" for c in next(ws.iter_rows(min_row=1,max_row=1))]
