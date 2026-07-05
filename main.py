@@ -3,7 +3,7 @@
 Vstup: export ceníku (CSV), volitelně productsComplete XML (kategorie), volitelně ruční PDF.
 Výstup: Shoptet import CSV/XML: code,pairCode,name,guid,price,purchasePrice,Category,variant:Váha
 """
-import os, io, csv, json, time, logging
+import os, io, csv, json, time, logging, asyncio
 from fastapi import FastAPI, UploadFile, File, Form, Header, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 import core
@@ -13,6 +13,15 @@ log = logging.getLogger("cenotvorba")
 app = FastAPI(title="Cenotvorba moje-zlato.cz")
 APP_TOKEN = os.environ.get("APP_TOKEN", "")          # doporučeno nastavit na Railway
 MAPPING_PATH = os.environ.get("MAPPING_PATH", "mapping.json")
+# --- automatický feed (cron uvnitř aplikace) ---
+FEED_TOKEN   = os.environ.get("FEED_TOKEN", "")
+FEED_METALS  = os.environ.get("FEED_METALS", "gold").split(",")
+FEED_MIN     = int(os.environ.get("FEED_INTERVAL_MIN", "60"))
+F_MARGIN     = float(os.environ.get("MARGIN_PCT", "1.25"))
+F_BANDS      = json.loads(os.environ.get("MARGIN_BANDS", "null") or "null")
+F_ROUND      = int(os.environ.get("ROUNDING", "1"))
+F_QTY        = int(os.environ.get("QTY", "1"))
+_feed = {"xml": None, "ts": 0, "meta": {}}
 
 _cache = {}   # {metal: (ts, items)}
 TTL = 600
@@ -146,6 +155,51 @@ async def mapping_set(body: dict, x_token: str = Header("")):
         json.dump(mp, f, ensure_ascii=False, indent=1)
     return {"ok": True, "polozek": len(mp),
             "pozn": "Souborový zápis je na Railway efemérní – trvalé změny commitněte do repa."}
+
+
+def _regen_feed():
+    catalog=[]
+    for met in FEED_METALS:
+        if met: catalog += core.parse_catalog(core.fetch_stonex_pdf(met.strip()))
+    spot, n = core.implied_spot(catalog)
+    fx, d = core.cnb_eur_czk()
+    mp = get_mapping()
+    pseudo=[{"code": c} for c in mp]           # ceník není třeba: stačí kódy z mapy
+    rows, skipped = core.compute_rows(pseudo, mp, catalog, spot, fx,
+                                      F_MARGIN, F_BANDS, F_ROUND, F_QTY, {})
+    meta=(f"generováno {time.strftime('%Y-%m-%d %H:%M:%S')} UTC · spot {spot} EUR/g "
+          f"(implikovaný, n={n}) · kurz CNB {fx} ({d}) · marže {F_MARGIN}% · "
+          f"položek {len(rows)} · přeskočeno {len(skipped)}")
+    _feed["xml"]=core.export_feed_xml(rows, meta)
+    _feed["ts"]=time.time()
+    _feed["meta"]={"spot":spot,"fx":fx,"rows":len(rows),
+                   "skipped":[s.get("code") for s in skipped],"info":meta}
+    log.info("feed přegenerován: %s", meta)
+
+@app.on_event("startup")
+async def _scheduler():
+    async def loop():
+        while True:
+            try:
+                await asyncio.to_thread(_regen_feed)
+            except Exception as e:
+                log.exception("regenerace feedu selhala: %s", e)
+            await asyncio.sleep(FEED_MIN*60)
+    asyncio.create_task(loop())
+
+@app.get("/feed.xml")
+def feed_xml(token: str = ""):
+    if FEED_TOKEN and token != FEED_TOKEN:
+        raise HTTPException(401, "chybný token (?token=...)")
+    if _feed["xml"] is None or time.time()-_feed["ts"] > FEED_MIN*60*2:
+        _regen_feed()                     # samoléčba: na vyžádání, je-li cache stará
+    return Response(_feed["xml"], media_type="application/xml")
+
+@app.get("/feed/status")
+def feed_status(x_token: str = Header("")):
+    auth(x_token)
+    age = round((time.time()-_feed["ts"])/60,1) if _feed["ts"] else None
+    return {"stari_min": age, "interval_min": FEED_MIN, **_feed["meta"]}
 
 @app.get("/", response_class=HTMLResponse)
 def ui():

@@ -149,6 +149,19 @@ def export_xml(rows):
     parts.append("</SHOP>")
     return "\n".join(parts)
 
+def export_feed_xml(rows, meta=""):
+    """Aktualizační feed: záměrně POUZE kód a ceny – nic jiného se v e-shopu nepřepíše."""
+    from xml.sax.saxutils import escape as esc
+    parts=['<?xml version="1.0" encoding="UTF-8"?>']
+    if meta: parts.append(f"<!-- {esc(meta)} -->")
+    parts.append("<SHOP>")
+    for r in rows:
+        parts.append(f'<SHOPITEM><CODE>{esc(str(r["code"]))}</CODE>'
+                     f'<PRICE>{czk_fmt(r["price"])}</PRICE>'
+                     f'<PURCHASE_PRICE>{czk_fmt(r["purchasePrice"])}</PURCHASE_PRICE></SHOPITEM>')
+    parts.append("</SHOP>")
+    return "\n".join(parts)
+
 def load_categories_from_xml(xml_bytes):
     """productsComplete XML -> {guid: kategorie} (DEFAULT_CATEGORY)."""
     import xml.etree.ElementTree as ET

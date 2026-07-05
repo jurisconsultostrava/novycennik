@@ -62,11 +62,35 @@ vynechává; sloupec Category se nechává prázdný k redakčnímu doplnění. 
 zkalibrován proti reálné stránce (ověřeno vč. cenové rovnice na cent); scraping je
 šetrný (pauzy mezi požadavky), pro první test použijte Limit=5.
 
-## Přihlášení k dodavateli (volitelné, klientské ceny)
-Veřejný katalog funguje bez přihlášení. Pokud klientský účet zobrazuje individuální
-prémie, nastavte na Railway proměnnou `STONEX_COOKIE`: přihlaste se v prohlížeči,
-v DevTools → Network zkopírujte hodnotu hlavičky `Cookie` z libovolného požadavku
-na stonexbullion.com a vložte ji jako hodnotu proměnné. Přihlašovací údaje nikdy
-nepatří do kódu ani do repa; po expiraci session cookie obnovte. Ceny novinek se
-počítají z metal-specifického spotu čteného přímo z detailu produktu (Gold/Silver/
-Platinum/Palladium), nikoli ze zlatého PDF.
+## AUTOMATICKÝ REŽIM: feed na pevné URL (cron uvnitř aplikace)
+Aplikace každých `FEED_INTERVAL_MIN` minut (výchozí 60) sama stáhne katalog,
+kurz ČNB, přepočítá ceny všech kódů z `mapping.json` a drží výsledek v paměti.
+
+**URL feedu:** `https://<vase-domena>/feed.xml?token=<FEED_TOKEN>`
+Feed obsahuje ZÁMĚRNĚ pouze `CODE`, `PRICE`, `PURCHASE_PRICE` – import tedy nemůže
+přepsat názvy, kategorie ani nic jiného. V hlavičce XML je komentář s časem
+generování, spotem, kurzem a počtem položek. Stav: `GET /feed/status` (X-Token).
+Samoléčba: je-li cache starší než 2× interval, feed se přegeneruje při dotazu.
+
+**Proměnné automatiky (Railway → Variables):**
+`FEED_TOKEN` (povinné – URL token pro Shoptet), `FEED_INTERVAL_MIN`=60,
+`FEED_METALS`=gold, `MARGIN_PCT`=1.25, `MARGIN_BANDS`=[{"max_g":10,"pct":5}] (volit.),
+`ROUNDING`=1, `QTY`=1.
+
+**Shoptet:** Propojení → Import produktů → import z URL s plánovaným spouštěním;
+vložte URL feedu včetně tokenu a nastavte párování dle `code`. Konkrétní umístění
+volby se v administraci Shoptetu může lišit dle tarifu – ověřte ve svém adminu.
+
+**Ruční ceník CSV už není pro aktualizace potřeba** – UI část s uploadem zůstává
+pro ad-hoc analýzy (Δ% proti starým cenám, kategorie, nespárované položky).
+
+## Přihlášení k dodavateli – stav a limity automatizace
+Celý automatický řetězec běží bez přihlášení (veřejné prémie; ověřeno).
+`STONEX_COOKIE` je jen dočasný můstek pro interaktivní běhy a pro cron se nehodí
+(session expiruje). Pokud klientský účet vidí jiné ceny než veřejné a mají se
+používat ve feedu, je nutné doprogramovat automatický login: pošlete jednorázově
+strukturu přihlašovacího requestu z DevTools (URL endpointu a názvy polí payloadu,
+BEZ hesla) a modul doplníme; údaje pak patří výhradně do proměnných
+`STONEX_USER`/`STONEX_PASS`. Pozn.: web běží za Cloudflare – pokud by datacentrová
+IP Railway dostávala challenge, řešením je proxy s rezidentní IP nebo dohoda
+s dodavatelem o API/feedu pro velkoobchodní klienty (nejčistší cesta).
